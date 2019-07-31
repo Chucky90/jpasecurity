@@ -919,9 +919,8 @@ public class CriteriaVisitor extends JpqlVisitorAdapter<CriteriaHolder> {
      * {@inheritDoc}
      */
     public boolean visit(JpqlIndex node, CriteriaHolder query) {
-        node.jjtGetChild(0).visit(this, query);
-        Expression<Integer> index = query.<ListJoin<?, ?>>getCurrentValue().index();
-        query.setValue(index);
+        ListJoin<?, ?> join = (ListJoin<?, ?>)query.getFrom(new Alias(node.jjtGetChild(0).toString()));
+        query.setValue(join.index());
         return false;
     }
 
