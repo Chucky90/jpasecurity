@@ -61,7 +61,6 @@ import org.jpasecurity.model.ParentTestBean;
 import org.jpasecurity.util.ValueHolder;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class QueryEvaluatorTest {
@@ -923,40 +922,6 @@ public class QueryEvaluatorTest {
 
         bean.setParent(new MethodAccessTestBean("testParent"));
         assertFalse(evaluate(statement.getWhereClause(), parameters));
-    }
-
-    @Ignore("See https://github.com/ArneLimburg/jpasecurity/issues/25")
-    @Test
-    public void evaluateIndex() throws Exception {
-        SimpleSubselectEvaluator evaluator = new SimpleSubselectEvaluator();
-        evaluator.setQueryEvaluator(queryEvaluator);
-
-        JpqlCompiledStatement statement = compile("SELECT b FROM MethodAccessTestBean b WHERE EXISTS ( "
-            + "SELECT child FROM MethodAccessTestBean bean "
-            + "LEFT OUTER JOIN bean.children child WHERE bean = b AND INDEX(child) = 1)");
-        final ValueHolder<JpqlSubselect> subselectHolder = new ValueHolder<>();
-        statement.getStatement().visit(new JpqlVisitorAdapter<Object>() {
-            public boolean visit(JpqlSubselect s) {
-                subselectHolder.setValue(s);
-                return false;
-            }
-        });
-        JpqlCompiledStatement subselect = compiler.compile(subselectHolder.getValue());
-
-        MethodAccessTestBean parent = new MethodAccessTestBean("test1");
-        MethodAccessTestBean child = new MethodAccessTestBean("test2");
-        MethodAccessTestBean secondChild = new MethodAccessTestBean("test3");
-        List<MethodAccessTestBean> children = new ArrayList<>();
-        children.add(child);
-        parent.setChildren(children);
-
-        aliases.put(new Alias("b"), parent);
-        assertTrue(evaluator.evaluate(subselect, parameters).isEmpty());
-
-        children.add(secondChild);
-        Collection<?> result = evaluator.evaluate(subselect, parameters);
-        assertEquals(1, result.size());
-        assertEquals(secondChild, result.iterator().next());
     }
 
     @Test
