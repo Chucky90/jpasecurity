@@ -42,7 +42,6 @@ import org.jpasecurity.security.AccessRule;
 import org.jpasecurity.security.rules.AccessRulesCompiler;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -82,12 +81,6 @@ public class CriteriaVisitorTest {
         children.get(0).setParent(bean1);
         children.get(1).setParent(bean1);
         bean1.setChildren(children);
-        ArrayList<TestBean> children = new ArrayList<>();
-        children.add(new TestBean());
-        children.add(new TestBean());
-        children.get(0).setParent(bean1);
-        children.get(1).setParent(bean1);
-        bean1.setChildren(children);
         bean2 = new Bean();
         entityManager.persist(bean1);
         entityManager.persist(bean2);
@@ -109,25 +102,6 @@ public class CriteriaVisitorTest {
         Root<Bean> from = query.from(Bean.class);
         from.alias("testBean");
         query.where(from.get("parent").isNull());
-
-        Map<String, Object> emptyParameterMap = Collections.emptyMap();
-        accessRule.getWhereClause().visit(criteriaVisitor, new CriteriaHolder(query, emptyParameterMap));
-        List<TestBean> result = entityManager.createQuery(query).getResultList();
-        assertEquals(1, result.size());
-        assertEquals(1, result.iterator().next().getId());
-    }
-
-    @Ignore("See https://github.com/ArneLimburg/jpasecurity/issues/25")
-    @Test
-    public void appendAccessRuleWithIndex() {
-        AccessRule accessRule = compile("GRANT READ ACCESS TO TestBean testBean WHERE EXISTS ( "
-            + "SELECT child FROM TestBean t "
-            + "LEFT OUTER JOIN t.children child WHERE t = testBean AND INDEX(child) = 1)");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<TestBean> query = criteriaBuilder.createQuery(TestBean.class);
-        Root<TestBean> from = query.from(TestBean.class);
-        from.alias("testBean");
 
         Map<String, Object> emptyParameterMap = Collections.emptyMap();
         accessRule.getWhereClause().visit(criteriaVisitor, new CriteriaHolder(query, emptyParameterMap));
